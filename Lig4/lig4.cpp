@@ -6,12 +6,17 @@ class Tabuleiro
 {
 private:
     char **tab;
-    int n;    // linha
-    int m;    // coluna
-    bool vez; // se for 1 é jogador 1 se for 0 é jogador 2
-    int colunaCheia;
-    int p1;
-    int p2;
+    int n;           // linha
+    int m;           // coluna
+    bool vez;        // se for 1 é jogador 1 se for 0 é jogador 2
+    int colunaCheia; // nº de colunas cheias
+    int p1;          // pontuação do jogador 1
+    int p2;          // pontuação do jogador 2
+protected:
+    char **getTab()
+    {
+        return tab;
+    }
 
 public:
     Tabuleiro(int _m, int _n)
@@ -31,8 +36,8 @@ public:
             for (int j = 0; j < m; j++)
                 tab[i][j] = '.';
     }
-    ~Tabuleiro()
-    {
+    virtual ~Tabuleiro()
+    {        
         for (int i = 0; i < n; i++)
         {
             delete tab[i];
@@ -79,16 +84,17 @@ public:
     };
     int escolheColuna()
     {
+        exibirTabuleiro();
+        alternarVez();
         int coluna;
         cout << "Digite uma coluna: ";
         cin >> coluna;
         return coluna;
     }
-    void realizaJogada()
+    int realizaJogada(int coluna)
     {
-        exibirTabuleiro();
-        alternarVez();
-        int coluna = escolheColuna();
+
+        // int coluna = escolheColuna();
 
         if (verificaJogada(coluna - 1))
         {
@@ -106,12 +112,13 @@ public:
                 colunaCheia++;
             }
             inserir(coluna - 1, aux);
+            return coluna;
         }
         else
         {
             cout << "Jogada Inválida" << endl;
             alternarVez(1);
-            realizaJogada();
+            return realizaJogada(escolheColuna());
         }
     };
     int getP1()
@@ -185,7 +192,7 @@ public:
 
         while (colunaCheia < m)
         {
-            realizaJogada();
+            realizaJogada(escolheColuna());
         }
         exibirTabuleiro();
         resultadoFinal();
@@ -207,10 +214,22 @@ public:
 
 class Lig4 : public Tabuleiro
 {
+private:
+    string jogadas;
+    int *colunas;
+
 public:
     Lig4() : Tabuleiro(7, 6)
     {
+        jogadas = "";
+        colunas = new int[7 - 1];
     }
+    ~Lig4() override
+    {        
+        delete colunas;
+    }
+    int solver();
+    int random();
     int resultadoFinal()
     {
         enum
@@ -232,19 +251,37 @@ public:
         else
             return Empate;
     }
-
+    string atualizaTabuleiro(int coluna)
+    {
+        jogadas += '0' + coluna;
+        // cout << jogadas << endl;
+        return jogadas;
+    }
+    int *colunasPreenchidas()
+    {
+        int m = 7;
+        char **tab = getTab();
+        for (int i = 0; i < m; i++)
+            if (tab[6 - 1][i] != '.')
+                colunas[i] = 0;
+            else
+                colunas[i] = 1;
+        return colunas;
+    }
     void gerenciaJogo()
     {
         while (resultadoFinal() != 2)
         {
             setP1(0);
             setP2(0);
+            jogadas = "";
             reiniciarTabuleiro();
             cout << "Lig 4 tradicional!!" << endl;
             cout << "O jogo começou" << endl;
             while (!resultadoFinal())
             {
-                realizaJogada();
+                atualizaTabuleiro(
+                    realizaJogada(escolheColuna()));
             }
             exibirTabuleiro();
             if (getP1())
@@ -267,4 +304,14 @@ int main()
     t2.gerenciaJogo();
 
     return 0;
+}
+
+int Lig4::solver()
+{
+    return 1;
+}
+
+int Lig4::random()
+{
+    return 1;
 }
