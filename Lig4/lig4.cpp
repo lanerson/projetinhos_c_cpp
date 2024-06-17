@@ -1,26 +1,35 @@
 #include <iostream>
+#include <random>
 
+#define M 7
+#define N 6
 using namespace std;
 
 class Tabuleiro
 {
 private:
     char **tab;
-    int n;           // linha
-    int m;           // coluna
-    bool vez;        // se for 1 é jogador 1 se for 0 é jogador 2
-    int colunaCheia; // nº de colunas cheias
-    int p1;          // pontuação do jogador 1
-    int p2;          // pontuação do jogador 2
+    int n;             // linha
+    int m;             // coluna
+    bool vez;          // se for 1 é jogador 1 se for 0 é jogador 2
+    int *alturaColuna; // nº de colunas cheias
+    int colunaCheia;
+    int p1; // pontuação do jogador 1
+    int p2; // pontuação do jogador 2
 protected:
     char **getTab()
     {
         return tab;
     }
+    int *getAltura()
+    {
+        return alturaColuna;
+    }
 
 public:
     Tabuleiro(int _m, int _n)
     {
+        alturaColuna = new int[_m];
         colunaCheia = 0;
         vez = 0;
         n = _n; // linha
@@ -34,15 +43,19 @@ public:
         }
         for (int i = 0; i < n; i++)
             for (int j = 0; j < m; j++)
+            {
                 tab[i][j] = '.';
+                alturaColuna[j] = 0;
+            }
     }
     virtual ~Tabuleiro()
-    {        
+    {
         for (int i = 0; i < n; i++)
         {
             delete tab[i];
         }
         delete[] tab;
+        delete alturaColuna;
     }
     void exibirTabuleiro()
     {
@@ -73,19 +86,20 @@ public:
     {
         if (coluna < m && coluna >= 0)
         {
-            if (tab[n - 1][coluna] != '.')
+            if (alturaColuna[coluna] >= n)
             {
                 cout << "Coluna totalmente preenchida" << endl;
                 return 0; // não tá
             }
+
             return 1; // tá nos conformes
         }
         return 0; // não tá
     };
-    int escolheColuna()
+    int escolheColuna(int erro = 0)
     {
         exibirTabuleiro();
-        alternarVez();
+        alternarVez(erro);
         int coluna;
         cout << "Digite uma coluna: ";
         cin >> coluna;
@@ -98,27 +112,17 @@ public:
 
         if (verificaJogada(coluna - 1))
         {
-            int aux = n;
-            for (int i = n - 1; i >= 0; i--)
-            {
-                if (tab[i][coluna - 1] != '.')
-                {
-                    break;
-                }
-                aux--;
-            }
-            if (aux == n - 1)
-            {
-                colunaCheia++;
-            }
-            inserir(coluna - 1, aux);
+
+            inserir(coluna - 1, alturaColuna[coluna - 1]);
+            alturaColuna[coluna - 1]++;
             return coluna;
         }
         else
         {
-            cout << "Jogada Inválida" << endl;
+            cout << "Jogada Inválida" << endl
+                 << endl;
             alternarVez(1);
-            return realizaJogada(escolheColuna());
+            return realizaJogada(escolheColuna(1));
         }
     };
     int getP1()
@@ -217,19 +221,35 @@ class Lig4 : public Tabuleiro
 private:
     string jogadas;
     int *colunas;
+    random_device rd;
 
 public:
-    Lig4() : Tabuleiro(7, 6)
+    Lig4() : Tabuleiro(M, 6)
     {
         jogadas = "";
-        colunas = new int[7 - 1];
+        colunas = new int[M - 1];
     }
     ~Lig4() override
-    {        
+    {
         delete colunas;
+    }
+    int getRandom()
+    {
+        mt19937 gen(rd());
+        uniform_int_distribution<> dist(0, 6);
+        return dist(gen);
     }
     int solver();
     int random();
+    // int escolheColuna(int jogador=0)
+    // {
+    //     if(jogador){
+    //         return random();
+    //     }else{
+    //         return solver();
+    //     }
+        
+    // }
     int resultadoFinal()
     {
         enum
@@ -259,10 +279,9 @@ public:
     }
     int *colunasPreenchidas()
     {
-        int m = 7;
         char **tab = getTab();
-        for (int i = 0; i < m; i++)
-            if (tab[6 - 1][i] != '.')
+        for (int i = 0; i < M; i++)
+            if (tab[N - 1][i] != '.')
                 colunas[i] = 0;
             else
                 colunas[i] = 1;
@@ -308,10 +327,24 @@ int main()
 
 int Lig4::solver()
 {
+    // string testeJogadas = jogadas;
+    // int altura[M] = {0};
+    // int newtab[N][M];
+    // int paridade = 0;
+    // for (size_t i = 0; i < jogadas.size(); ++i)
+    // {
+    //     newtab[altura[i]][jogadas[i] - '0'] = paridade;
+    //     !paridade;
+    // }
     return 1;
 }
 
 int Lig4::random()
 {
-    return 1;
+    int jog = getRandom();
+    while (getAltura()[jog] >= N)
+    {
+        jog = getRandom();
+    }
+    return jog;    
 }
