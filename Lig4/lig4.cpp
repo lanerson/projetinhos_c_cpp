@@ -25,6 +25,10 @@ protected:
     {
         return alturaColuna;
     }
+    bool getVez()
+    {
+        return vez;
+    }
 
 public:
     Tabuleiro(int _m, int _n)
@@ -47,6 +51,10 @@ public:
                 tab[i][j] = '.';
                 alturaColuna[j] = 0;
             }
+    }
+    void setVez()
+    {
+        vez = !vez;
     }
     virtual ~Tabuleiro()
     {
@@ -73,11 +81,14 @@ public:
     {
         for (int i = 0; i < n; i++)
             for (int j = 0; j < m; j++)
+            {
                 tab[i][j] = '.';
+                alturaColuna[j] = 0;
+            }
     }
     void alternarVez(int erro = 0)
     {
-        vez = !vez;
+        setVez();
         int jogador = vez ? 1 : 2;
         if (!erro)
             cout << "Agora é a vez do jogador " << jogador << endl;
@@ -112,9 +123,10 @@ public:
 
         if (verificaJogada(coluna - 1))
         {
-
             inserir(coluna - 1, alturaColuna[coluna - 1]);
             alturaColuna[coluna - 1]++;
+            if (alturaColuna[coluna - 1] == n)
+                colunaCheia++;
             return coluna;
         }
         else
@@ -122,7 +134,7 @@ public:
             cout << "Jogada Inválida" << endl
                  << endl;
             alternarVez(1);
-            return realizaJogada(escolheColuna(1));
+            return realizaJogada(escolheColuna());
         }
     };
     int getP1()
@@ -211,7 +223,7 @@ public:
     };
     void inserir(int m, int n) // coluna, linha
     {
-        char jogada = vez ? 'X' : '0';
+        char jogada = getVez() ? 'X' : '0';
         tab[n][m] = jogada;
     }
 };
@@ -241,15 +253,21 @@ public:
     }
     int solver();
     int random();
-    // int escolheColuna(int jogador=0)
-    // {
-    //     if(jogador){
-    //         return random();
-    //     }else{
-    //         return solver();
-    //     }
-        
-    // }
+    int escolheColuna()
+    {
+        if (getVez())
+        {
+            setVez();
+            return solver();
+        }
+        else
+        {
+            setVez();
+            // return solver();
+            return random();
+        }
+    }
+
     int resultadoFinal()
     {
         enum
@@ -259,6 +277,7 @@ public:
             Vitoria_da_Cor2,
             Empate
         };
+
         resultadoHorizontal();
         resultadoVertical();
         resultadoDiagonal();
@@ -271,10 +290,60 @@ public:
         else
             return Empate;
     }
+    int checkColumn3(char **tab)
+    {
+        for (int j = 0; j < M; j++)
+        {
+            for (int i = N - 1; i > 2; i--)
+            {
+                if (tab[i][j] == 'X' && tab[i - 1][j] == 'X' && tab[i - 2][j] == 'X' && tab[i - 3][j] == '.')
+                    return j;
+            }
+        }
+
+        return 0;
+    }
+    int checkColumn2(char **tab)
+    {
+        for (int j = 0; j < M; j++)
+        {
+            for (int i = N - 1; i > 1; i--)
+            {
+                if (tab[i][j] == 'X' && tab[i - 1][j] == 'X' && tab[i - 2][j] == '.')
+                    return j;
+            }
+        }
+
+        return 0;
+    }
+    int checkrows3(char **tab)
+    {
+        for (int i = 0; i < N; i++)
+        {
+            for (int j = 0; j < M - 4; j++)
+            {
+                if (tab[i][j] == 'X' && tab[i][j + 1] == 'X' && tab[i][j + 2] == 'X' && tab[i][j + 3] == 'X')
+                    return (j + 3);
+            }
+        }
+        return 0;
+    }
+    int checkrows2(char **tab)
+    {
+        for (int i = 0; i < N; i++)
+        {
+            for (int j = 0; j < M - 3; j++)
+            {
+                if (tab[i][j] == 'X' && tab[i][j + 1] == 'X' && tab[i][j + 2] == '.')
+                    return (j + 2);
+            }
+        }
+        return 0;
+    }
     string atualizaTabuleiro(int coluna)
     {
         jogadas += '0' + coluna;
-        // cout << jogadas << endl;
+        // alternarVez();
         return jogadas;
     }
     int *colunasPreenchidas()
@@ -299,10 +368,14 @@ public:
             cout << "O jogo começou" << endl;
             while (!resultadoFinal())
             {
-                atualizaTabuleiro(
-                    realizaJogada(escolheColuna()));
+                int temp1 = escolheColuna();
+                int temp2 = realizaJogada(temp1);
+                // atualizaTabuleiro(
+                //     realizaJogada(escolheColuna()));
+                atualizaTabuleiro(temp2);
             }
             exibirTabuleiro();
+            cout << jogadas << endl;
             if (getP1())
                 cout << "Jogador 1 venceu" << endl
                      << endl;
@@ -327,15 +400,24 @@ int main()
 
 int Lig4::solver()
 {
-    // string testeJogadas = jogadas;
-    // int altura[M] = {0};
-    // int newtab[N][M];
-    // int paridade = 0;
-    // for (size_t i = 0; i < jogadas.size(); ++i)
-    // {
-    //     newtab[altura[i]][jogadas[i] - '0'] = paridade;
-    //     !paridade;
-    // }
+    int options[17] = {0};
+
+    options[0] = checkColumn3(getTab());
+    options[1] = checkrows3(getTab());
+    options[10] = 4;
+    options[11] = 3;
+    options[12] = 2;
+    options[13] = 1;
+    options[14] = 5;
+    options[15] = 6;
+    options[16] = 7;
+    for (int i = 0; i < 17; i++)
+    {
+        if (verificaJogada(options[i]))
+        {
+            return options[i] + 1;
+        }
+    }
     return 1;
 }
 
@@ -346,5 +428,5 @@ int Lig4::random()
     {
         jog = getRandom();
     }
-    return jog;    
+    return jog + 1;
 }
