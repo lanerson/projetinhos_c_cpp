@@ -1,6 +1,6 @@
 #include <iostream>
-#include <random>
-
+#include <cstdlib>
+#include <ctime>
 #define M 7
 #define N 6
 using namespace std;
@@ -232,8 +232,7 @@ class Lig4 : public Tabuleiro
 {
 private:
     string jogadas;
-    int *colunas;
-    random_device rd;
+    int *colunas;    
 
 public:
     Lig4() : Tabuleiro(M, 6)
@@ -245,12 +244,7 @@ public:
     {
         delete colunas;
     }
-    int getRandom()
-    {
-        mt19937 gen(rd());
-        uniform_int_distribution<> dist(0, 6);
-        return dist(gen);
-    }
+    
     int solver();
     int random();
     int escolheColuna()
@@ -431,10 +425,5 @@ int Lig4::solver()
 
 int Lig4::random()
 {
-    int jog = getRandom();
-    while (getAltura()[jog] >= N)
-    {
-        jog = getRandom();
-    }
-    return jog + 1;
+    return rand() % 7;
 }
