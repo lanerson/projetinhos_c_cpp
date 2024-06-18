@@ -52,9 +52,9 @@ public:
                 alturaColuna[j] = 0;
             }
     }
-    void setVez()
+    void setVez(int _vez)
     {
-        vez = !vez;
+        vez = _vez;
     }
     virtual ~Tabuleiro()
     {
@@ -88,7 +88,7 @@ public:
     }
     void alternarVez(int erro = 0)
     {
-        setVez();
+        setVez(!getVez());
         int jogador = vez ? 1 : 2;
         if (!erro)
             cout << "Agora é a vez do jogador " << jogador << endl;
@@ -254,19 +254,26 @@ public:
     int solver();
     int random();
     int escolheColuna()
-    {
-        if (getVez())
-        {
-            setVez();
-            return solver();
-        }
-        else
-        {
-            setVez();
-            // return solver();
-            return random();
-        }
+     {
+         if (getVez())
+         {
+             setVez(0);
+             int jog = random();
+             cout << "jogada do melhor - " << jog << endl;
+             getchar();
+             return random();
+         }
+         else
+         {  
+            setVez(1);
+             int jog = solver();
+             cout << "jogada do 1 - " << jog << endl;
+             getchar();
+             return solver();
+         }
     }
+
+
 
     int resultadoFinal()
     {
@@ -363,6 +370,7 @@ public:
             setP1(0);
             setP2(0);
             jogadas = "";
+            setVez(0);
             reiniciarTabuleiro();
             cout << "Lig 4 tradicional!!" << endl;
             cout << "O jogo começou" << endl;
@@ -402,8 +410,8 @@ int Lig4::solver()
 {
     int options[17] = {0};
 
-    options[0] = checkColumn3(getTab());
-    options[1] = checkrows3(getTab());
+    // options[0] = checkColumn3(getTab());
+    // options[1] = checkrows3(getTab());
     options[10] = 4;
     options[11] = 3;
     options[12] = 2;
